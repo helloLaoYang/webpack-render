@@ -1,5 +1,7 @@
 const path = require('path')
 const webpack = require('webpack')
+const utils = require('./utils')
+const config = require('../config')
 const vueConfig = require('./vue-loader.config')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
@@ -15,7 +17,7 @@ const createLintingRule = () => ({
   include: [resolve('src'), resolve('test')],
   options: {
     formatter: require('eslint-friendly-formatter'),
-    // emitWarning: !config.dev.showEslintErrorsInOverlay
+    emitWarning: !config.dev.showEslintErrorsInOverlay
   }
 })
 
@@ -31,13 +33,13 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
-      '@': resolve('src'),
+      '@': resolve('src')
     }
   },
   module: {
     noParse: /es6-promise\.js$/, // avoid webpack shimming process
     rules: [
-      ...(isProd ? []: [createLintingRule()]),
+      ...(config.dev.useEslint ? [createLintingRule()] : []),
       {
         test: /\.vue$/,
         loader: 'vue-loader',
@@ -53,7 +55,7 @@ module.exports = {
         loader: 'url-loader',
         options: {
           limit: 10000,
-          name: '[hash:8].[ext]'
+          name: utils.assetsPath('[hash:8].[ext]')
         }
       },
       {
@@ -61,16 +63,16 @@ module.exports = {
         loader: 'url-loader',
         options: {
           limit: 10000,
-          name: '[hash:8].[ext]'
+          name: utils.assetsPath('[hash:8].[ext]')
         }
       },
       {
         test: /\.css$/,
         use: isProd
           ? ExtractTextPlugin.extract({
-              use: 'css-loader?minimize',
-              fallback: 'vue-style-loader'
-            })
+            use: 'css-loader?minimize',
+            fallback: 'vue-style-loader'
+          })
           : ['vue-style-loader', 'css-loader']
       }
     ]
@@ -81,15 +83,16 @@ module.exports = {
   },
   plugins: isProd
     ? [
-        new webpack.optimize.UglifyJsPlugin({
-          compress: { warnings: false }
-        }),
-        new webpack.optimize.ModuleConcatenationPlugin(),
-        new ExtractTextPlugin({
-          filename: '[chunkhash:8].css'
-        })
-      ]
+      new webpack.optimize.UglifyJsPlugin({
+        compress: { warnings: false }
+      }),
+      new webpack.optimize.ModuleConcatenationPlugin(),
+      new ExtractTextPlugin({
+        filename: '[chunkhash:8].css',
+        allChunks: true
+      })
+    ]
     : [
-        new FriendlyErrorsPlugin()
-      ]
+      new FriendlyErrorsPlugin()
+    ]
 }

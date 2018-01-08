@@ -1,12 +1,39 @@
 const webpack = require('webpack')
 const merge = require('webpack-merge')
+const path = require('path')
 const base = require('./webpack.base.config')
-const SWPrecachePlugin = require('sw-precache-webpack-plugin')
+const config = require('../config')
 const VueSSRClientPlugin = require('vue-server-renderer/client-plugin')
 
-const config = merge(base, {
+const HOST = process.env.HOST
+const PORT = process.env.PORT && Number(process.env.PORT)
+
+const webpackConfig = merge(base, {
   entry: {
     app: './entry/client.js'
+  },
+  devServer: {
+    clientLogLevel: 'warning',
+    historyApiFallback: {
+      rewrites: [
+        { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') }
+      ]
+    },
+    hot: true,
+    contentBase: false, // since we use CopyWebpackPlugin.
+    compress: true,
+    host: HOST || config.dev.host,
+    port: PORT || config.dev.port,
+    open: config.dev.autoOpenBrowser,
+    overlay: config.dev.errorOverlay
+      ? { warnings: false, errors: true }
+      : false,
+    publicPath: config.dev.assetsPublicPath,
+    proxy: config.dev.proxyTable,
+    quiet: true, // necessary for FriendlyErrorsPlugin
+    watchOptions: {
+      poll: config.dev.poll,
+    }
   },
   plugins: [
     // strip dev-only code in Vue source
@@ -36,35 +63,4 @@ const config = merge(base, {
   ]
 })
 
-// if (process.env.NODE_ENV === 'production') {
-//   config.plugins.push(
-//     // auto generate service worker
-//     new SWPrecachePlugin({
-//       cacheId: 'vue-hn',
-//       filename: 'service-worker.js',
-//       minify: true,
-//       dontCacheBustUrlsMatching: /./,
-//       staticFileGlobsIgnorePatterns: [/\.map$/, /\.json$/],
-//       runtimeCaching: [
-//         {
-//           urlPattern: '/',
-//           handler: 'networkFirst'
-//         },
-//         {
-//           urlPattern: /\/(top|new|show|ask|jobs)/,
-//           handler: 'networkFirst'
-//         },
-//         {
-//           urlPattern: '/item/:id',
-//           handler: 'networkFirst'
-//         },
-//         {
-//           urlPattern: '/user/:id',
-//           handler: 'networkFirst'
-//         }
-//       ]
-//     })
-//   )
-// }
-
-module.exports = config
+module.exports = webpackConfig

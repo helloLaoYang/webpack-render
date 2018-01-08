@@ -64,7 +64,7 @@ const serve = (path, cache) => express.static(resolve(path), {
 })
 
 app.use(compression({ threshold: 0 }))
-// app.use(favicon('./public/logo-48.png'))
+app.use(favicon('./src/assets/logo.png'))
 app.use('/dist', serve('./dist', true))
 // app.use('/public', serve('./public', true))
 // app.use('/manifest.json', serve('./manifest.json', true))
@@ -81,13 +81,13 @@ app.use(microcache.cacheSeconds(1, req => useMicroCache && req.originalUrl))
 function render (req, res) {
   const s = Date.now()
 
-  res.setHeader("Content-Type", "text/html")
-  res.setHeader("Server", serverInfo)
+  res.setHeader('Content-Type', 'text/html')
+  res.setHeader('Server', serverInfo)
 
   const handleError = err => {
     if (err.url) {
       res.redirect(err.url)
-    } else if(err.code === 404) {
+    } else if (err.code === 404) {
       res.status(404).send('404 | Page Not Found')
     } else {
       // Render Error Page or Redirect

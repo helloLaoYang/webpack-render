@@ -1,2 +1,2 @@
 # webpack-render
-webpack-render
+webpack-render demo
